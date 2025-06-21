@@ -2,6 +2,6 @@
 fastapi==0.115.0
 uvicorn==0.30.6
 openai==1.3.0
-composio==1.0.0rc5  # Use composio, not composio-openai
+composio==0.1.1  # Use composio, not composio-openai
 python-dotenv==1.0.1
 pydantic==2.9.1
