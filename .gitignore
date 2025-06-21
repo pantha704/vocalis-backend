@@ -1,1 +1,3 @@
 .env
+.composio.lock
+__pycache__/
