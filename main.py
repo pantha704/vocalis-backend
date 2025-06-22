@@ -4,13 +4,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from models import TextInput, TextOutput
 from utils import interpret_command
 from services import create_repo, schedule_event
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000",  # Local development
+    "https://vocalis-new.onrender.com",  # Replace with your actual frontend domain
+]
 # Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Update for production
+    allow_origins=origins,  # Update for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,7 +33,10 @@ async def process_text(input: TextInput):
         intent = command.get("intent", "").lower()
         params = command.get("params", {})
 
-        if intent == "create_repo":
+## GITHUB COMMANDS
+
+    # CREATE REPOSITORY
+        if intent == "GITHUB_CREATE_A_REPOSITORY_FOR_THE_AUTHENTICATED_USER":
             name = params.get("name")
             if not name:
                 return TextOutput(response="Please specify a repository name.")
@@ -43,6 +51,7 @@ async def process_text(input: TextInput):
             event_url = schedule_event(summary, time)
             return TextOutput(response=f"Event scheduled: {event_url}")
 
+    # CREATE ISSUE
         elif intent == "github_create_an_issue":
             from services import create_issue
             owner = params.get("owner")
@@ -54,6 +63,41 @@ async def process_text(input: TextInput):
             url = create_issue(owner, repo, title, body)
             return TextOutput(response=f"Issue created: {url}")
 
+    # LIST REPOS
+        elif intent == "github_list_repositories_for_a_user":
+            from services import list_repositories
+            user = params.get("user")
+            if not user:
+                return TextOutput(response="Please specify a user to list repositories.")
+            repos = list_repositories(user)
+            return TextOutput(response=f"Repositories for {user}: {repos}")
+        
+## WEATHER COMMANDS
+        elif intent == "weathermap_weather":
+            from services import check_weather
+            location = params.get("location")
+            if not location:
+                return TextOutput(response="Please specify a location to check the weather.")
+            weather_info = check_weather(location)
+            # If the data is a list, parse it prettily
+            if isinstance(weather_info, list) and weather_info:
+                descriptions = [f"{item.get('description', '').capitalize()} ({item.get('main', '')})" for item in weather_info]
+                formatted_weather = ", ".join(descriptions)
+                return TextOutput(response=f"It's currently {formatted_weather} in {location} 🌍")
+            else:
+                return TextOutput(response=f"Weather in {location}: {weather_info}")
+            
+  ## NOTION COMMANDS
+        elif intent == "NOTION_CREATE_NOTION_PAGE":
+            from services import create_notion_page
+            title = params.get("name")
+            print(parent_id)
+            parent_id = params.get("parent_id")
+            if not title or not parent_id:
+                return TextOutput(response="Please provide a title and parent ID to create a Notion page.")
+            page_url = create_notion_page(title, parent_id)
+            return TextOutput(response=f"Notion page created: {page_url}")
+        
         # You can add more intents below:
         # elif intent == "github_star_a_repository_for_the_authenticated_user":
         # elif intent == "github_list_repositories_for_a_user":
