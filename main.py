@@ -11,6 +11,8 @@ app = FastAPI()
 origins = [
     "http://localhost:3000",  # Local development
     "https://vocalis-new.onrender.com",  # Replace with your actual frontend domain
+    "https://vocalis-backend.onrender.com",
+    "https://vocalis-advance.onrender.com",  # Add your production domain here
 ]
 # Enable CORS for frontend
 app.add_middleware(
